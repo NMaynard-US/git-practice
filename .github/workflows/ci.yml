@@ -50,3 +50,20 @@ jobs:
       with:
         name: python-application
         path: dist/hello.py
+
+  staging:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: python-application
+
+      - name: Deploy to staging environment
+        run: |
+          echo "Deploying application to staging environment"
+          python -m py_compile hello.py
+          echo "Staging deployment successful"
