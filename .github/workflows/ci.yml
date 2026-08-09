@@ -39,3 +39,14 @@ jobs:
         pip install flake8 bandit
         flake8 hello.py
         bandit -r hello.py
+
+    - name: Create build artifact
+      run: |
+        mkdir -p dist
+        cp hello.py dist/hello.py
+
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: python-application
+        path: dist/hello.py
