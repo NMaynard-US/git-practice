@@ -33,3 +33,9 @@ jobs:
  
     - name: Build application
       run: python -m py_compile hello.py
+
+    - name: Code Quality and Security Scan
+      run: |
+        pip install flake8 bandit
+        flake8 hello.py
+        bandit -r hello.py
