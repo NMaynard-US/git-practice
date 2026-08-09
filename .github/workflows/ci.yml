@@ -31,3 +31,5 @@ jobs:
  
     - name: Build application 
       run: python setup.py sdist bdist_wheel 
+
+      # Trigger workflow rerun
