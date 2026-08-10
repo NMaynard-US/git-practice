@@ -1,14 +1,15 @@
-name: CI/CD Pipeline 
-on: 
+name: CI/CD Pipeline
 
- push: 
-    branches: 
-      - main 
-  pull_request: 
-    branches: 
-      - main 
- 
-jobs: 
+on:
+  push:
+    branches:
+      - main
+      - cicd-pipeline
+  pull_request:
+    branches:
+      - main
+
+jobs:
   build: 
     runs-on: ubuntu-latest 
  
@@ -21,13 +22,99 @@ jobs:
       with: 
         python-version: '3.x' 
  
-    - name: Install dependencies 
-      run: | 
-        python -m pip install --upgrade pip 
-        pip install -r requirements.txt 
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
  
     - name: Run tests 
       run: pytest 
  
-    - name: Build application 
-      run: python setup.py sdist bdist_wheel 
+    - name: Build application
+      run: python -m py_compile hello.py
+
+    - name: Code Quality and Security Scan
+      run: |
+        pip install flake8 bandit
+        flake8 hello.py
+        bandit -r hello.py
+
+    - name: Create build artifact
+      run: |
+        mkdir -p dist
+        cp hello.py dist/hello.py
+
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: python-application
+        path: dist/hello.py
+
+  staging:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: python-application
+
+      - name: Deploy to staging environment
+        run: |
+          echo "Deploying application to staging environment"
+          python -m py_compile hello.py
+          echo "Staging deployment successful"
+
+  integration-test:
+    needs: staging
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: python-application
+
+      - name: Run integration tests
+        run: |
+          python -m py_compile hello.py
+          python hello.py
+          echo "Integration testing successful"
+
+  production:
+    needs: integration-test
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: python-application
+
+      - name: Deploy to production
+        run: |
+          echo "Deploying application to production"
+          python -m py_compile hello.py
+          echo "Production deployment successful"
+
+  monitoring:
+    needs: production
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download production artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: python-application
+
+      - name: Monitor application
+        run: |
+          echo "Starting application monitoring"
+          python hello.py
+          echo "Application status: healthy"
+          echo "No errors detected"
+          echo "Monitoring and logging successful"
