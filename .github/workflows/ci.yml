@@ -100,3 +100,21 @@ jobs:
           echo "Deploying application to production"
           python -m py_compile hello.py
           echo "Production deployment successful"
+
+  monitoring:
+    needs: production
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download production artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: python-application
+
+      - name: Monitor application
+        run: |
+          echo "Starting application monitoring"
+          python hello.py
+          echo "Application status: healthy"
+          echo "No errors detected"
+          echo "Monitoring and logging successful"
