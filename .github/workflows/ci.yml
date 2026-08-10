@@ -67,3 +67,19 @@ jobs:
           echo "Deploying application to staging environment"
           python -m py_compile hello.py
           echo "Staging deployment successful"
+
+  integration-test:
+    needs: staging
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: python-application
+
+      - name: Run integration tests
+        run: |
+          python -m py_compile hello.py
+          python hello.py
+          echo "Integration testing successful"
